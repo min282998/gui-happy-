@@ -1,9 +1,50 @@
+[index.html](https://github.com/user-attachments/files/22007822/index.html)
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
 
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chúc Mừng Sinh Nhật Lung Linh! 🎉</title>
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
     <style>
         body {
             margin: 0;
@@ -11,8 +52,8 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            background: linear-gradient(135deg, #2a1a3f, #6b5b95); /* Nền tím đậm trời đêm */
-            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #301934, #6a1b9a, #a1c4fd);
+            font-family: 'Pacifico', cursive;
             overflow: hidden;
             touch-action: none;
         }
@@ -72,12 +113,13 @@
 
         let stars = [];
         let particles = [];
-        const wishes = ["Happy Birthday!", "Chúc Mừng Sinh Nhật!"]; // Thay lời chúc ở đây
-        const colors = ['#ffd1dc', '#ffeb99']; // Màu cho từng lời chúc
+        const wishes = ["Happy Birthday!", "Chúc Mừng Sinh Nhật!"];
         let currentWishIndex = 0;
+        const colors = ['#ffd1dc', '#d4a5ff', '#f7b731'];
+        let currentColor = colors[0];
         let phase = 'form';
         let phaseTime = 0;
-        const phaseDuration = 8000; // 8 giây để chậm
+        const phaseDuration = 8000;
 
         function createStars() {
             stars = [];
@@ -85,10 +127,10 @@
                 stars.push({
                     x: Math.random() * starCanvas.width,
                     y: Math.random() * starCanvas.height,
-                    size: Math.random() * 5 + 2,
+                    size: Math.random() * 7 + 3,
                     vx: Math.random() * 2 - 1,
                     vy: Math.random() * 2 - 1,
-                    color: '#ffffff', // Ngôi sao trắng sáng
+                    color: '#ffffff',
                     dragging: false
                 });
             }
@@ -96,8 +138,6 @@
 
         function updateStars() {
             starCtx.clearRect(0, 0, starCanvas.width, starCanvas.height);
-            starCtx.shadowBlur = 10; // Glow cho ngôi sao
-            starCtx.shadowColor = '#ffffff';
             stars.forEach(s => {
                 if (!s.dragging) {
                     s.x += s.vx;
@@ -107,7 +147,6 @@
                 }
                 drawStar(s.x, s.y, s.size, s.color);
             });
-            starCtx.shadowBlur = 0; // Tắt glow sau khi vẽ
         }
 
         function drawStar(x, y, size, color) {
@@ -118,19 +157,18 @@
             }
             starCtx.closePath();
             starCtx.fillStyle = color;
+            starCtx.shadowBlur = 10;
+            starCtx.shadowColor = '#ffffff';
             starCtx.fill();
         }
 
         function createParticles() {
             particles = [];
             const currentText = wishes[currentWishIndex];
-            const currentColor = colors[currentWishIndex];
-            textCtx.font = 'bold 60px Arial';
+            textCtx.font = 'bold 60px Pacifico';
             textCtx.textAlign = 'center';
             textCtx.textBaseline = 'middle';
             textCtx.fillStyle = currentColor;
-            textCtx.shadowBlur = 15; // Lấp lánh cho chữ
-            textCtx.shadowColor = currentColor;
             const textMetrics = textCtx.measureText(currentText);
             const textWidth = textMetrics.width;
             const textHeight = 60;
@@ -150,7 +188,7 @@
                             homeY: j - textHeight / 2 + y,
                             x: Math.random() * textCanvas.width,
                             y: Math.random() * textCanvas.height,
-                            size: Math.random() * 3 + 2,
+                            size: Math.random() * 2 + 1, // Hạt nhỏ hơn
                             color: currentColor,
                             vx: Math.random() * 2 - 1,
                             vy: Math.random() * 2 - 1,
@@ -161,36 +199,54 @@
                     }
                 }
             }
-            textCtx.shadowBlur = 0; // Tắt lấp lánh
         }
 
         function updateParticles() {
             textCtx.clearRect(0, 0, textCanvas.width, textCanvas.height);
-            const currentColor = colors[currentWishIndex];
-            particles.forEach(p => {
-                if (phase === 'form') {
-                    p.angle += 0.05;
-                    const targetX = p.homeX + Math.cos(p.angle) * p.radius;
-                    const targetY = p.homeY + Math.sin(p.angle) * p.radius;
-                    p.x = lerp(p.x, p.homeX, 0.015);
-                    p.y = lerp(p.y, p.homeY, 0.015);
-                    p.radius = lerp(p.radius, 0, 0.015);
-                    const gradient = textCtx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size);
-                    gradient.addColorStop(0, currentColor);
-                    gradient.addColorStop(1, '#d4a5ff');
-                    p.color = gradient;
-                } else {
-                    p.x += p.vx;
-                    p.y += p.vy;
-                    if (p.x < 0 || p.x > textCanvas.width) p.vx = -p.vx;
-                    if (p.y < 0 || p.y > textCanvas.height) p.vy = -p.vy;
-                    p.color = currentColor;
-                }
-                textCtx.beginPath();
-                textCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                textCtx.fillStyle = p.color;
-                textCtx.fill();
-            });
+
+            if (phase === 'form' && phaseTime > phaseDuration * 0.9) {
+                // Vẽ chữ hoàn chỉnh khi gần xong phase form
+                const currentText = wishes[currentWishIndex];
+                textCtx.font = 'bold 60px Pacifico';
+                textCtx.textAlign = 'center';
+                textCtx.textBaseline = 'middle';
+                textCtx.fillStyle = currentColor;
+                textCtx.fillText(currentText, textCanvas.width / 2, textCanvas.height / 2);
+            } else {
+                particles.forEach(p => {
+                    if (phase === 'form') {
+                        if (p.radius > 5) {
+                            p.angle += 0.05;
+                            const targetX = p.homeX + Math.cos(p.angle) * p.radius;
+                            const targetY = p.homeY + Math.sin(p.angle) * p.radius;
+                            p.x = lerp(p.x, targetX, 0.015);
+                            p.y = lerp(p.y, targetY, 0.015);
+                            p.radius = lerp(p.radius, 0, 0.015);
+                            const gradient = textCtx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size);
+                            gradient.addColorStop(0, '#ffd1dc');
+                            gradient.addColorStop(1, '#d4a5ff');
+                            p.color = gradient;
+                        } else {
+                            p.x = lerp(p.x, p.homeX, 0.015);
+                            p.y = lerp(p.y, p.homeY, 0.015);
+                            p.color = currentColor;
+                            textCtx.shadowBlur = 0;
+                        }
+                    } else {
+                        p.x += p.vx;
+                        p.y += p.vy;
+                        if (p.x < 0 || p.x > textCanvas.width) p.vx = -p.vx;
+                        if (p.y < 0 || p.y > textCanvas.height) p.vy = -p.vy;
+                        p.color = currentColor;
+                        textCtx.shadowBlur = 5;
+                        textCtx.shadowColor = p.color;
+                    }
+                    textCtx.beginPath();
+                    textCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    textCtx.fillStyle = p.color;
+                    textCtx.fill();
+                });
+            }
 
             phaseTime += 16;
             if (phaseTime > phaseDuration) {
@@ -198,6 +254,7 @@
                 phaseTime = 0;
                 if (phase === 'form') {
                     currentWishIndex = (currentWishIndex + 1) % wishes.length;
+                    currentColor = colors[Math.floor(Math.random() * colors.length)];
                     createParticles();
                 }
             }
