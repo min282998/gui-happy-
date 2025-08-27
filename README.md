@@ -1,4 +1,4 @@
-[index.html](https://github.com/user-attachments/files/22007822/index.html)
+[index.html](https://github.com/user-attachments/files/22007893/index.html)
 <script type="text/javascript">
         var gk_isXlsx = false;
         var gk_xlsxFileLookup = {};
@@ -43,6 +43,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"> <!-- Ép nhận diện HTML -->
     <title>Chúc Mừng Sinh Nhật Lung Linh! 🎉</title>
     <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
     <style>
@@ -188,7 +189,7 @@
                             homeY: j - textHeight / 2 + y,
                             x: Math.random() * textCanvas.width,
                             y: Math.random() * textCanvas.height,
-                            size: Math.random() * 2 + 1, // Hạt nhỏ hơn
+                            size: Math.random() * 2 + 1,
                             color: currentColor,
                             vx: Math.random() * 2 - 1,
                             vy: Math.random() * 2 - 1,
@@ -205,7 +206,6 @@
             textCtx.clearRect(0, 0, textCanvas.width, textCanvas.height);
 
             if (phase === 'form' && phaseTime > phaseDuration * 0.9) {
-                // Vẽ chữ hoàn chỉnh khi gần xong phase form
                 const currentText = wishes[currentWishIndex];
                 textCtx.font = 'bold 60px Pacifico';
                 textCtx.textAlign = 'center';
